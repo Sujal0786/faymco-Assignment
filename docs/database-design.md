@@ -10,14 +10,14 @@ This document outlines the schema tables, relationships, integrity constraints, 
 erDiagram
     users {
         uuid id PK
-        string username UNIQUE
-        string email UNIQUE
+        string username "UNIQUE"
+        string email "UNIQUE"
         timestamp created_at
         timestamp updated_at
     }
     brands {
         uuid id PK
-        string name UNIQUE
+        string name "UNIQUE"
         timestamp created_at
         timestamp updated_at
     }
@@ -25,7 +25,7 @@ erDiagram
         uuid id PK
         uuid user_id FK
         uuid brand_id FK
-        string external_reference UNIQUE
+        string external_reference "UNIQUE"
         string status "pending, approved, rejected"
         bigint earning_amount "paise"
         bigint advance_paid_amount "paise"
@@ -50,7 +50,7 @@ erDiagram
         bigint amount "paise"
         string status "created, processing, succeeded, failed, cancelled, rejected"
         string provider_reference
-        string idempotency_key UNIQUE
+        string idempotency_key "UNIQUE"
         text failure_reason
         timestamp initiated_at
         timestamp completed_at
@@ -75,7 +75,7 @@ erDiagram
         string entry_type "ADVANCE_PAYOUT, etc"
         bigint amount "paise"
         bigint balance_after "paise"
-        string idempotency_key UNIQUE
+        string idempotency_key "UNIQUE"
         string description
         timestamp created_at
     }
@@ -87,13 +87,13 @@ erDiagram
         timestamp requested_at
         timestamp completed_at
         uuid retry_of_withdrawal_id FK "optional"
-        string idempotency_key UNIQUE
+        string idempotency_key "UNIQUE"
         timestamp created_at
         timestamp updated_at
     }
     processed_webhook_events {
         uuid id PK
-        string provider_event_id UNIQUE
+        string provider_event_id "UNIQUE"
         string event_type
         jsonb payload
         timestamp processed_at
