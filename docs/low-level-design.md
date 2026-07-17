@@ -20,6 +20,73 @@ The system is designed using a clean, layered architecture:
 - **MockPayoutGateway**: Simulates payout provider processing, timeout delays, and error states while maintaining an in-memory idempotency cache.
 - **Database Layer**: Knex schema configurations, foreign keys, row locks, partial unique indexes, and audit ledgers.
 
+### 1.1 Architectural Overview Diagram
+
+```mermaid
+graph TD
+    User([User Client])
+    Admin([Admin Client])
+    Webhook([Payout Provider Webhook])
+    
+    subgraph API_Layer [API Layer]
+        Router[Express Router]
+        Validate[Validation Middleware]
+        ErrorHandler[Error Handler Middleware]
+    end
+
+    subgraph Controller_Layer [Controller Layer]
+        UserController[UserController]
+        SaleController[SaleController]
+        PayoutController[PayoutController]
+        WalletController[WalletController]
+        WithdrawalController[WithdrawalController]
+        WebhookController[WebhookController]
+    end
+
+    subgraph Service_Layer [Service Layer]
+        WalletService[WalletService]
+        AdvanceService[AdvancePayoutService]
+        ReconcileService[ReconciliationService]
+        WithdrawalService[WithdrawalService]
+        WebhookService[WebhookService]
+    end
+
+    subgraph Gateway [External Gateway]
+        MockGateway[MockPayoutGateway]
+    end
+
+    subgraph DB [Database Layer]
+        Postgres[(PostgreSQL Database)]
+    end
+
+    User --> Router
+    Admin --> Router
+    Webhook --> Router
+
+    Router --> Validate
+    Validate --> UserController & SaleController & PayoutController & WalletController & WithdrawalController & WebhookController
+    
+    UserController --> WalletService
+    SaleController --> ReconcileService
+    PayoutController --> AdvanceService
+    WalletController --> WalletService
+    WithdrawalController --> WithdrawalService
+    WebhookController --> WebhookService
+
+    AdvanceService --> WalletService & MockGateway
+    WithdrawalService --> WalletService & MockGateway
+    ReconcileService --> WalletService
+    WebhookService --> WalletService
+
+    WalletService --> Postgres
+    AdvanceService --> Postgres
+    ReconcileService --> Postgres
+    WithdrawalService --> Postgres
+    WebhookService --> Postgres
+
+    Router -.-> ErrorHandler
+```
+
 ---
 
 ## 2. Status Machines
@@ -77,6 +144,10 @@ sequenceDiagram
     alt Payout Succeeded
         Job->>DB: Update Payout & Allocation to 'succeeded'
         Job->>DB: Set sale.advance_paid_amount = advanceAmount
+        Note over Job,Wallet: Double-Entry Accounting:
+        Note over Job,Wallet: 1. Credit logs the advance commission allocation (+).
+        Note over Job,Wallet: 2. Debit logs the immediate transfer to the user's external bank account (-).
+        Note over Job,Wallet: The net impact on the withdrawable wallet balance is 0 paise.
         Job->>Wallet: adjustBalance(+advanceAmount, type: ADVANCE_PAYOUT)
         Wallet->>DB: Update wallet (withdrawable_balance += advanceAmount)
         Wallet->>DB: Insert Credit Ledger Entry

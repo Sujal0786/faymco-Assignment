@@ -38,8 +38,9 @@ The test suite contains an automated integration test proving this exact busines
    - **Sale 2 is approved**: Wallet adjustment = `₹40 - ₹4 = +₹36 (+3600 paise)`.
    - **Sale 3 is approved**: Wallet adjustment = `₹40 - ₹4 = +₹36 (+3600 paise)`.
 4. **Final Wallet Balance**:
-   - Wallet withdrawable balance = `-400 + 3600 + 3600 = 6800 paise` = **₹68**.
-   - Total cash the user received = ₹12 (advance) + ₹68 (withdrawn remainder) = **₹80** (matching 10% of rejected ₹40 + 100% of approved ₹40 + approved ₹40).
+   - Final reconciliation payout / remaining withdrawable amount = **₹68** (6800 paise: calculated as `-400 + 3600 + 3600`).
+   - Previously transferred advance = **₹12** (1200 paise: ₹4 per sale).
+   - Total lifetime cash received = **₹80** (8000 paise: matching 10% of rejected ₹40 + 100% of approved ₹40 + 100% of approved ₹40).
 
 ---
 
@@ -94,7 +95,7 @@ DB_CLIENT=postgresql
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
-DB_PASSWORD=110805
+DB_PASSWORD=your_postgres_password
 DB_NAME=faym_payout_db
 DB_TEST_NAME=faym_payout_test_db
 ```

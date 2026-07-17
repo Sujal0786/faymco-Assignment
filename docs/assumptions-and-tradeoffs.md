@@ -19,6 +19,13 @@ This document outlines the core business assumptions, architectural choices, and
   - The referenced request must be in a terminal failed state and must not have already been retried.
   - The retry amount must be **less than or equal to** the original failed request's amount. This prevents bypassing the 24-hour limit to withdraw additional new earnings.
 
+### 1.3 Double-Entry Accounting for Advance Payouts
+- **Direct Payout Model**: The 10% advance payout is sent directly to the user's external bank account/wallet via the payment provider, rather than being added to their internal withdrawable wallet balance.
+- **Double-Entry Logging**: To maintain a transparent and audit-compliant ledger, when an advance payout succeeds, the system posts both a **Credit** and a **Debit** of equal value to the user's wallet ledger under the `ADVANCE_PAYOUT` entry type:
+  - *Credit*: Logs the user earning the advance payout commission (+).
+  - *Debit*: Logs the transfer/withdrawal of those funds to the user's external account (-).
+  - *Result*: The net impact on the *withdrawable* wallet balance is zero, which prevents users from double-withdrawing the advance while keeping the immutable ledger fully synchronized with the actual cash flow.
+
 ---
 
 ## 2. Technical Trade-offs
